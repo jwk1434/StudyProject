@@ -9,18 +9,21 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine",
-				"CoreUObject"
+				"Engine"
 			]
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "ModelingToolsEditorMode",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
-			]
-		}
-	]
+			{
+			  "Name": "ModelingToolsEditorMode",
+			  "Enabled": true,
+			  "TargetAllowList": [
+			    "Editor"
+			  ]
+			},
+			{
+			  "Name": "EnhancedInput",
+			  "Enabled": true
+			}
+		]
 }
