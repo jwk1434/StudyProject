@@ -29,6 +29,13 @@ public:
     UFUNCTION()
     void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+    float GetMaxEXP() const { return MaxEXP; }
+    float GetCurrentEXP() const { return CurrentEXP; }
+
+    void SetMaxEXP(float InMaxEXP) { MaxEXP = InMaxEXP; }
+    void SetCurrentEXP(float InCurrentEXP);
+
+
 private:
     void BeginCombo();
 
@@ -75,4 +82,13 @@ private:
     float RightInputValue;
 
     uint8 bIsAttacking : 1;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    float MaxEXP = 10;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    float CurrentEXP = 0;
 };

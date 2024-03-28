@@ -12,6 +12,7 @@
 #include "Animations/SAnimInstance.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
+#include "Particles/ParticleSystemComponent.h"
 
 ASRPGCharacter::ASRPGCharacter()
     : bIsAttacking(false)
@@ -33,6 +34,10 @@ ASRPGCharacter::ASRPGCharacter()
     GetCharacterMovement()->bOrientRotationToMovement = true;
     GetCharacterMovement()->bUseControllerDesiredRotation = false;
     GetCharacterMovement()->RotationRate = FRotator(0.f, 480.f, 0.f);
+
+    ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
+    ParticleSystemComponent->SetupAttachment(GetRootComponent());
+    ParticleSystemComponent->SetAutoActivate(false);
 }
 
 void ASRPGCharacter::BeginPlay()
@@ -227,4 +232,14 @@ float ASRPGCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), CurrentHP, MaxHP));
 
     return FinalDamageAmount;
+}
+
+void ASRPGCharacter::SetCurrentEXP(float InCurrentEXP)
+{
+    CurrentEXP = FMath::Clamp(CurrentEXP + InCurrentEXP, 0.f, MaxEXP);
+    if (MaxEXP - KINDA_SMALL_NUMBER < CurrentEXP)
+    {
+        CurrentEXP = 0.f;
+        ParticleSystemComponent->Activate(true);
+    }
 }
