@@ -29,11 +29,11 @@ public:
     UFUNCTION()
     void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
-    float GetMaxEXP() const { return MaxEXP; }
-    float GetCurrentEXP() const { return CurrentEXP; }
+    //float GetMaxEXP() const { return MaxEXP; }
+    //float GetCurrentEXP() const { return CurrentEXP; }
 
-    void SetMaxEXP(float InMaxEXP) { MaxEXP = InMaxEXP; }
-    void SetCurrentEXP(float InCurrentEXP);
+    //void SetMaxEXP(float InMaxEXP) { MaxEXP = InMaxEXP; }
+    //void SetCurrentEXP(float InCurrentEXP);
 
 
 private:
@@ -68,6 +68,11 @@ private:
     UFUNCTION()
     void CheckHit();
 
+    UFUNCTION()
+    void OnCurrentLevelChanged(int32 InOldCurrentLevel, int32 InNewCurrentLevel);
+
+    UFUNCTION()
+    void OnAssetLoaded();
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     TObjectPtr<class USInputConfigData> PlayerCharacterInputConfigData;
@@ -86,9 +91,14 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+    /*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
     float MaxEXP = 10;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
-    float CurrentEXP = 0;
+    float CurrentEXP = 0;*/
+
+private:
+
+    FSoftObjectPath CurrentPlayerCharacterMeshPath = FSoftObjectPath();
+    TSharedPtr<struct FStreamableHandle> AssetStreamableHandle = nullptr;
 };
