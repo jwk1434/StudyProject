@@ -63,6 +63,7 @@ private:
     void Move(const FInputActionValue& InValue);
     void Look(const FInputActionValue& InValue);
     void Attack(const FInputActionValue& InValue);
+    void Menu(const FInputActionValue& InValue);
 
 
     UFUNCTION()

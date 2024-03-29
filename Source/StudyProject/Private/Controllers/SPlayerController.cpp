@@ -50,4 +50,42 @@ void ASPlayerController::BeginPlay()
             }
         }
     }
+
+    if (true == ::IsValid(MenuUIClass))
+    {
+        MenuUIInstance = CreateWidget<UUserWidget>(this, MenuUIClass);
+        if (true == ::IsValid(MenuUIInstance))
+        {
+            MenuUIInstance->AddToViewport(3); // »óÀ§¿¡ ¶ç¿ò.
+
+            MenuUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
+}
+
+void ASPlayerController::ToggleMenu()
+{
+    if (false == bIsMenuOn)
+    {
+        MenuUIInstance->SetVisibility(ESlateVisibility::Visible);
+
+        FInputModeUIOnly Mode;
+        Mode.SetWidgetToFocus(MenuUIInstance->GetCachedWidget());
+        SetInputMode(Mode);
+        SetPause(true);
+
+        bShowMouseCursor = true;
+    }
+    else
+    {
+        MenuUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+
+        FInputModeGameOnly InputModeGameOnly;
+        SetInputMode(InputModeGameOnly);
+        SetPause(false);
+
+        bShowMouseCursor = false;
+    }
+
+    bIsMenuOn = !bIsMenuOn;
 }
