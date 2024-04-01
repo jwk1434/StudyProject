@@ -18,7 +18,7 @@ void USTitleLevelUI::NativeConstruct()
 	LoadGameButton.Get()->OnClicked.AddDynamic(this, &ThisClass::OnLoadGameButtonClicked);
 
 	LoadGameButton->SetIsEnabled(false);
-	const ASPlayerState* PS = GetDefault<ASPlayerState>();
+	/*const ASPlayerState* PS = GetDefault<ASPlayerState>();
 	if (true == ::IsValid(PS))
 	{
 		USPlayerStateSave* PlayerStateSave = Cast<USPlayerStateSave>(UGameplayStatics::LoadGameFromSlot(PS->SaveSlotName, 0));
@@ -26,7 +26,7 @@ void USTitleLevelUI::NativeConstruct()
 		{
 			LoadGameButton->SetIsEnabled(true);
 		}
-	}
+	}*/
 }
 
 void USTitleLevelUI::OnNewGameButtonClicked()

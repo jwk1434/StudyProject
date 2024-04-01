@@ -32,4 +32,10 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<class UInputAction> MenuAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> IronSightAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TObjectPtr<class UInputAction> TriggerAction;
 };

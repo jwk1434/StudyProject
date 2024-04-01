@@ -61,6 +61,17 @@ void ASPlayerController::BeginPlay()
             MenuUIInstance->SetVisibility(ESlateVisibility::Collapsed);
         }
     }
+
+    if (true == ::IsValid(CrosshairUIClass))
+    {
+        UUserWidget* CrosshairUI = CreateWidget<UUserWidget>(this, CrosshairUIClass);
+        if (true == ::IsValid(CrosshairUI))
+        {
+            CrosshairUI->AddToViewport(1);
+
+            CrosshairUI->SetVisibility(ESlateVisibility::Visible);
+        }
+    }
 }
 
 void ASPlayerController::ToggleMenu()
