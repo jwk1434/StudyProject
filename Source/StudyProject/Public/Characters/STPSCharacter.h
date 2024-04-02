@@ -22,6 +22,11 @@ public:
 
     float GetRightInputValue() const { return RightInputValue; }
 
+    float GetCurrentAimPitch() const { return CurrentAimPitch; }
+    float GetCurrentAimYaw() const { return CurrentAimYaw; }
+
+    TObjectPtr<USkeletalMeshComponent> GetWeaponComponent() const { return WeaponSkeletalMeshComponent; }
+    TObjectPtr<UCameraComponent> GetCameraComponent() const { return CameraComponent; }
 private:
     bool bIsTriggerToggle = false;
 
@@ -66,4 +71,13 @@ private:
 
     float TargetFOV = 70.f;
     float CurrentFOV = 70.f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
+    TObjectPtr<class UAnimMontage> RifleFireAnimMontage;
+
+    float CurrentAimPitch = 0.f;
+    float CurrentAimYaw = 0.f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
+    TSubclassOf<class UCameraShakeBase> FireShake;
 };
