@@ -27,6 +27,8 @@ public:
 
     TObjectPtr<USkeletalMeshComponent> GetWeaponComponent() const { return WeaponSkeletalMeshComponent; }
     TObjectPtr<UCameraComponent> GetCameraComponent() const { return CameraComponent; }
+
+    virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 private:
     bool bIsTriggerToggle = false;
 
@@ -53,6 +55,8 @@ private:
     void StartFire(const FInputActionValue& InValue);
     void StopFire(const FInputActionValue& InValue);
 
+    UFUNCTION()
+    void OnHittedRagdollRestoreTimerElapsed();
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<USkeletalMeshComponent> WeaponSkeletalMeshComponent;
@@ -80,4 +84,13 @@ private:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
     TSubclassOf<class UCameraShakeBase> FireShake;
+
+    // Rogdoll
+    FTimerHandle HittedRagdollRestoreTimer;
+    FTimerDelegate HittedRagdollRestoreTimerDelegate;
+
+    float TargetRagDollBlendWeight = 0.f;
+    float CurrentRagDollBlendWeight = 0.f;
+
+    bool bIsNowRagdollBlending = false;
 };
