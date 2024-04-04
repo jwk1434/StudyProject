@@ -54,6 +54,10 @@ private:
     void ToggleTrigger(const FInputActionValue& InValue);
     void StartFire(const FInputActionValue& InValue);
     void StopFire(const FInputActionValue& InValue);
+    void SpawnLandMine(const FInputActionValue& InValue);
+
+    UFUNCTION(Server, Reliable, WithValidation)
+    void SpawnLandMine_Server();
 
     UFUNCTION()
     void OnHittedRagdollRestoreTimerElapsed();
@@ -66,6 +70,9 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<class UInputMappingContext> PlayerCharacterInputMappingContext;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
+    TSubclassOf<class AActor> LandMineClass;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
     float ForwardInputValue;
