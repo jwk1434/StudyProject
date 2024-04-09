@@ -16,10 +16,20 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
     virtual void Tick(float DeltaTime) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    UFUNCTION()
+    void OnLandMineBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void SpawnEffect_NetMulticast();
+
+    UFUNCTION()
+    void OnRep_IsExploded();
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASLandMine", Meta = (AllowPrivateAccess))
     TObjectPtr<class UBoxComponent> BodyBoxComponent;
@@ -27,4 +37,13 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASLandMine", Meta = (AllowPrivateAccess))
     TObjectPtr<class UStaticMeshComponent> BodyStaticMeshComponent;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASLandMine", meta = (AllowPrivateAccess))
+    TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASLandMine", meta = (AllowPrivateAccess))
+    TObjectPtr<class UMaterial> ExplodedMaterial;
+
+    // - 클라에서 접근해야만 하는 속성은 Replicated 키워드를 아래와 같이 작성해야 함.
+    UPROPERTY(ReplicatedUsing = OnRep_IsExploded, VisibleAnywhere, BlueprintReadOnly, Category = "ASLandMine", meta = (AllowPrivateAccess))
+    uint8 bIsExploded : 1;
 };
