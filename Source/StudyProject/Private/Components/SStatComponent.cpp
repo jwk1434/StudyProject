@@ -3,12 +3,23 @@
 #include "Game/SGameInstance.h"
 #include "Characters/SRPGCharacter.h"
 #include "Game/SPlayerState.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
+
 
 USStatComponent::USStatComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     bWantsInitializeComponent = false;                  // 액터의 PostInitializeComponents() 함수에 대응하는 컴포넌트 함수는 InitializeComponent() 호출 유무
                                                         // 액터의 PostInitializeComponents() 함수가 호출되기 바로 전에 호출됨.
+}
+
+void USStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ThisClass, MaxHP);
+    DOREPLIFETIME(ThisClass, CurrentHP);
 }
 
 void USStatComponent::BeginPlay()
@@ -52,17 +63,33 @@ void USStatComponent::SetMaxHP(float InMaxHP)
 
 void USStatComponent::SetCurrentHP(float InCurrentHP)
 {
+    OnCurrentHPChanged_NetMulticast(CurrentHP, InCurrentHP);
+    CurrentHP = FMath::Clamp<float>(InCurrentHP, 0.f, MaxHP);
+    //if (true == OnCurrentHPChangeDelegate.IsBound())
+    //{
+    //    OnCurrentHPChangeDelegate.Broadcast(CurrentHP, InCurrentHP);
+    //}
+
+    //CurrentHP = FMath::Clamp<float>(InCurrentHP, 0.f, MaxHP);
+
+    //if (CurrentHP < KINDA_SMALL_NUMBER)
+    //{
+    //    OnOutOfCurrentHPDelegate.Broadcast();
+    //    CurrentHP = 0.f;
+    //}
+
+}
+
+void USStatComponent::OnCurrentHPChanged_NetMulticast_Implementation(float InOldCurrentHP, float InNewCurrentHP)
+{
     if (true == OnCurrentHPChangeDelegate.IsBound())
     {
-        OnCurrentHPChangeDelegate.Broadcast(CurrentHP, InCurrentHP);
+        OnCurrentHPChangeDelegate.Broadcast(InOldCurrentHP, InNewCurrentHP);
     }
 
-    CurrentHP = FMath::Clamp<float>(InCurrentHP, 0.f, MaxHP);
-
-    if (CurrentHP < KINDA_SMALL_NUMBER)
+    if (InNewCurrentHP < KINDA_SMALL_NUMBER)
     {
         OnOutOfCurrentHPDelegate.Broadcast();
-        CurrentHP = 0.f;
     }
 }
 

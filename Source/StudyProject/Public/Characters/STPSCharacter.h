@@ -29,6 +29,7 @@ public:
     TObjectPtr<UCameraComponent> GetCameraComponent() const { return CameraComponent; }
 
     virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
     bool bIsTriggerToggle = false;
 
@@ -61,6 +62,29 @@ private:
 
     UFUNCTION()
     void OnHittedRagdollRestoreTimerElapsed();
+
+    UFUNCTION(Server, Unreliable) // 한 두번 정도는 씹혀도 되기 때문.
+    void UpdateInputValue_Server(const float& InForwardInputValue, const float& InRightInputValue);
+
+    UFUNCTION(Server, Unreliable)
+    void UpdateAimValue_Server(const float& InAimPitchValue, const float& InAimYawValue);
+
+    UFUNCTION(Server, Unreliable)
+    void PlayAttackMontage_Server();
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void PlayAttackMontage_NetMulticast();
+
+    UFUNCTION(Server, Reliable)
+    void ApplyDamageAndDrawLine_Server(const FVector& InDrawStart, const FVector& InDrawEnd, class ACharacter* InHittedCharacter, float InDamage, struct FDamageEvent const& InDamageEvent, AController* InEventInstigator, AActor* InDamageCauser);
+
+    UFUNCTION(NetMulticast, Reliable)
+    void DrawLine_NetMulticast(const FVector& InDrawStart, const FVector& InDrawEnd);
+
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void PlayRagdoll_NetMulticast();
+
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess))
     TObjectPtr<USkeletalMeshComponent> WeaponSkeletalMeshComponent;
@@ -74,11 +98,14 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
     TSubclassOf<class AActor> LandMineClass;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
     float ForwardInputValue;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
     float RightInputValue;
+
+    float PreviousForwardInputValue = 0.f;
+    float PreviousRightInputValue = 0.f;
 
     float TargetFOV = 70.f;
     float CurrentFOV = 70.f;
@@ -86,8 +113,15 @@ private:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
     TObjectPtr<class UAnimMontage> RifleFireAnimMontage;
 
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
     float CurrentAimPitch = 0.f;
+
+    float PreviousAimPitch = 0.f;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "ASTPSCharacter", meta = (AllowPrivateAccess = true))
     float CurrentAimYaw = 0.f;
+
+    float PreviousAimYaw = 0.f;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = ASPlayerCharacter, Meta = (AllowPrivateAccess = true))
     TSubclassOf<class UCameraShakeBase> FireShake;

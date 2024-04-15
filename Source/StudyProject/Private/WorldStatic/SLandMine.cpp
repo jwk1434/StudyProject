@@ -120,11 +120,6 @@ void ASLandMine::OnLandMineBeginOverlap(AActor* OverlappedActor, AActor* OtherAc
 void ASLandMine::SpawnEffect_NetMulticast_Implementation()
 {
     ParticleSystemComponent->Activate(true);
-
-    if (true == ::IsValid(ExplodedMaterial))
-    {
-        BodyStaticMeshComponent->SetMaterial(0, ExplodedMaterial);
-    }
 }
 
 void ASLandMine::OnRep_IsExploded()

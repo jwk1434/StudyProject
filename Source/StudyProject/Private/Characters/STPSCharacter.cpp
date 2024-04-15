@@ -14,7 +14,10 @@
 #include "WorldStatic/SLandMine.h"
 #include "Components/SStatComponent.h"
 #include "Engine/EngineTypes.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 ASTPSCharacter::ASTPSCharacter()
     : ASCharacter()
@@ -65,6 +68,16 @@ void ASTPSCharacter::BeginPlay()
     }
 }
 
+void ASTPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ThisClass, ForwardInputValue);
+    DOREPLIFETIME(ThisClass, RightInputValue);
+    DOREPLIFETIME(ThisClass, CurrentAimPitch);
+    DOREPLIFETIME(ThisClass, CurrentAimYaw);
+}
+
 void ASTPSCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -106,9 +119,38 @@ float ASTPSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 {
     float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
+    //if (false == ::IsValid(GetStatComponent()))
+    //{
+    //    return ActualDamage;
+    //}
+
+    //if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+    //{
+    //    GetMesh()->SetSimulatePhysics(true);
+    //}
+    //else
+    //{
+    //    FName PivotBoneName = FName(TEXT("spine_01"));
+    //    GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
+    //    //float BlendWeight = 1.f; // 랙돌 포즈에 완전 치우쳐지게끔 가중치를 1.f로 지정.
+    //    //GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, BlendWeight);
+    //    TargetRagDollBlendWeight = 1.f;
+
+    //    HittedRagdollRestoreTimerDelegate.BindUObject(this, &ThisClass::OnHittedRagdollRestoreTimerElapsed);
+    //    GetWorld()->GetTimerManager().SetTimer(HittedRagdollRestoreTimer, HittedRagdollRestoreTimerDelegate, 1.f, false);
+    //}
+
+
+    PlayRagdoll_NetMulticast();
+
+    return ActualDamage;
+}
+
+void ASTPSCharacter::PlayRagdoll_NetMulticast_Implementation()
+{
     if (false == ::IsValid(GetStatComponent()))
     {
-        return ActualDamage;
+        return;
     }
 
     if (GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
@@ -119,15 +161,10 @@ float ASTPSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
     {
         FName PivotBoneName = FName(TEXT("spine_01"));
         GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
-        //float BlendWeight = 1.f; // 랙돌 포즈에 완전 치우쳐지게끔 가중치를 1.f로 지정.
-        //GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, BlendWeight);
         TargetRagDollBlendWeight = 1.f;
-
         HittedRagdollRestoreTimerDelegate.BindUObject(this, &ThisClass::OnHittedRagdollRestoreTimerElapsed);
         GetWorld()->GetTimerManager().SetTimer(HittedRagdollRestoreTimer, HittedRagdollRestoreTimerDelegate, 1.f, false);
     }
-
-    return ActualDamage;
 }
 
 void ASTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -192,6 +229,11 @@ void ASTPSCharacter::Attack(const FInputActionValue& InValue)
 
 void ASTPSCharacter::Fire()
 {
+    if (true == HasAuthority() || GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+    {
+        return;
+    }
+
     UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Fire() has been called.")));
 
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -215,7 +257,7 @@ void ASTPSCharacter::Fire()
 
     if (true == bIsCollide)
     {
-        DrawDebugLine(GetWorld(), MuzzleLocation, HitResult.Location, FColor(255, 255, 255, 64), true, 0.1f, 0U, 0.5f);
+        //DrawDebugLine(GetWorld(), MuzzleLocation, HitResult.Location, FColor(255, 255, 255, 64), true, 0.1f, 0U, 0.5f);
 
         ASCharacter* HittedCharacter = Cast<ASCharacter>(HitResult.GetActor());
         if (true == ::IsValid(HittedCharacter))
@@ -229,17 +271,21 @@ void ASTPSCharacter::Fire()
 
             if (true == BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
             {
-                HittedCharacter->TakeDamage(100.f, DamageEvent, GetController(), this);
+                //HittedCharacter->TakeDamage(100.f, DamageEvent, GetController(), this);
+                ApplyDamageAndDrawLine_Server(MuzzleLocation, HitResult.Location, HittedCharacter, 100.f, DamageEvent, GetController(), this);
             }
             else
             {
-                HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+                //HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+                ApplyDamageAndDrawLine_Server(MuzzleLocation, HitResult.Location, HittedCharacter, 10.f, DamageEvent, GetController(), this);
             }
         }
     }
     else
     {
-        DrawDebugLine(GetWorld(), MuzzleLocation, CameraEndLocation, FColor(255, 255, 255, 64), false, 0.1f, 0U, 0.5f);
+        //DrawDebugLine(GetWorld(), MuzzleLocation, CameraEndLocation, FColor(255, 255, 255, 64), false, 0.1f, 0U, 0.5f);
+        FDamageEvent DamageEvent;
+        ApplyDamageAndDrawLine_Server(MuzzleLocation, CameraEndLocation, nullptr, 0.f, DamageEvent, GetController(), this);
     }
 
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -251,11 +297,15 @@ void ASTPSCharacter::Fire()
     if (false == AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
     {
         AnimInstance->Montage_Play(RifleFireAnimMontage);
+        PlayAttackMontage_Server();
     }
 
     if (true == ::IsValid(FireShake))
     {
-        PlayerController->ClientStartCameraShake(FireShake);
+        if (GetOwner() == UGameplayStatics::GetPlayerController(this, 0))
+        { // 다른 클라가 사격했는데, 내 PC 화면이 흔들리지 않게끔 함.
+            PlayerController->ClientStartCameraShake(FireShake);
+        }
     }
 }
 
@@ -323,4 +373,53 @@ void ASTPSCharacter::SpawnLandMine_Server_Implementation()
         ASLandMine* SpawnedLandMine = GetWorld()->SpawnActor<ASLandMine>(LandMineClass, SpawnedLocation, FRotator::ZeroRotator);
         SpawnedLandMine->SetOwner(GetController());
     }
+}
+
+void ASTPSCharacter::UpdateInputValue_Server_Implementation(const float& InForwardInputValue, const float& InRightInputValue)
+{
+    ForwardInputValue = InForwardInputValue;
+    RightInputValue = InRightInputValue;
+}
+
+void ASTPSCharacter::UpdateAimValue_Server_Implementation(const float& InAimPitchValue, const float& InAimYawValue)
+{
+    CurrentAimPitch = InAimPitchValue;
+    CurrentAimYaw = InAimYawValue;
+}
+
+void ASTPSCharacter::PlayAttackMontage_Server_Implementation()
+{
+    PlayAttackMontage_NetMulticast();
+}
+
+void ASTPSCharacter::PlayAttackMontage_NetMulticast_Implementation()
+{
+    if (false == HasAuthority() && GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+    {
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+        if (false == ::IsValid(AnimInstance))
+        {
+            return;
+        }
+
+        if (false == AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
+        {
+            AnimInstance->Montage_Play(RifleFireAnimMontage);
+        }
+    }
+}
+
+void ASTPSCharacter::ApplyDamageAndDrawLine_Server_Implementation(const FVector& InDrawStart, const FVector& InDrawEnd, ACharacter* InHittedCharacter, float InDamage, FDamageEvent const& InDamageEvent, AController* InEventInstigator, AActor* InDamageCauser)
+{
+    if (true == ::IsValid(InHittedCharacter))
+    {
+        InHittedCharacter->TakeDamage(InDamage, InDamageEvent, InEventInstigator, InDamageCauser);
+    }
+
+    DrawLine_NetMulticast(InDrawStart, InDrawEnd);
+}
+
+void ASTPSCharacter::DrawLine_NetMulticast_Implementation(const FVector& InDrawStart, const FVector& InDrawEnd)
+{
+    DrawDebugLine(GetWorld(), InDrawStart, InDrawEnd, FColor(255, 255, 255, 64), false, 0.1f, 0U, 0.5f);
 }
